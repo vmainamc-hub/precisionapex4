@@ -220,7 +220,10 @@ export function rankOpportunities(
         modelBonus +
         sim.delta +
         entry.rankingDelta +
-        agreementBonus;
+        agreementBonus +
+        recentDelta +
+        clearancePenalty +
+        confidenceAdjustment;
 
       ranked.push({
         rank: 0,
@@ -232,15 +235,21 @@ export function rankOpportunities(
         preferred,
         simulator: sim.perf,
         simNote: sim.note,
+        recent: recentPerf,
         entry,
         agreement,
+        clearance,
+        evidence,
+        blocked: clearance.state === "BLOCKED",
         factors,
         invalidation,
       });
     }
   }
 
-  ranked.sort((a, b) => b.score - a.score);
+  // Blocked candidates are ordered last but never deleted: the operator can
+  // always see WHY an otherwise attractive setup is unavailable.
+  ranked.sort((a, b) => Number(a.blocked) - Number(b.blocked) || b.score - a.score);
   ranked.forEach((r, i) => (r.rank = i + 1));
   return { ranked, rejected };
 }
