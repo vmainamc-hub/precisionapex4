@@ -84,6 +84,11 @@ export interface SimEntryState {
   simBefore: { n: number; winRate: number };
   /** Rolling-window record for this market/contract BEFORE the entry. */
   simRecentBefore: { n: number; winRate: number };
+  /**
+   * Which engines voted for this entry, and how strongly. This is what makes
+   * per-engine effectiveness measurable against contract-resolved outcomes.
+   */
+  engineVotes?: { engine: string; weight: number }[];
 }
 
 export interface SimTrade {
