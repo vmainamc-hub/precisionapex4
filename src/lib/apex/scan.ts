@@ -60,77 +60,43 @@ export function rankOpportunities(
       continue;
     }
     for (const c of intel.contracts) {
-      if (c.danger > opts.maxDanger) {
-        rejected.push({
-          symbol: intel.symbol,
-          contract: c.label,
-          reason: `Danger ${c.danger.toFixed(0)} above limit ${opts.maxDanger}`,
-        });
-        continue;
-      }
-      // Refinement rejections — these are the reasons that keep a pretty hit
-      // rate from being promoted into a trade.
-      if (c.threat && c.threat.groupThreat >= 82) {
-        rejected.push({
-          symbol: intel.symbol,
-          contract: c.label,
-          reason: `Losing-digit threat ${c.threat.groupThreat.toFixed(0)} (${c.threat.state}) — digits ${c.threat.threats.slice(0, 2).map((t) => t.digit).join(", ")} dangerous`,
-        });
-        continue;
-      }
-      if (c.fakeEdge && c.fakeEdge.verdict === "REJECTED") {
-        rejected.push({
-          symbol: intel.symbol,
-          contract: c.label,
-          reason: `Fake-edge interrogation failed ${c.fakeEdge.failures} checks — ${c.fakeEdge.answers.find((a) => !a.ok)?.question ?? ""}`,
-        });
-        continue;
-      }
-      if (c.critical && c.critical.conflicts.length >= 2) {
-        rejected.push({
-          symbol: intel.symbol,
-          contract: c.label,
-          reason: `Critical digit conflict — ${c.critical.detail}`,
-        });
-        continue;
-      }
-      if (c.stats && c.stats.thin) {
-        rejected.push({
-          symbol: intel.symbol,
-          contract: c.label,
-          reason: `DATA THIN for statistical validation — ${c.n} ticks`,
-        });
-        continue;
-      }
-      if (c.compositeEdge <= 0) {
-        rejected.push({
-          symbol: intel.symbol,
-          contract: c.label,
-          reason: `No composite edge (${c.compositeEdge.toFixed(1)})`,
-        });
-        continue;
-      }
-      if (c.phase === "INVALIDATING") {
-        rejected.push({
-          symbol: intel.symbol,
-          contract: c.label,
-          reason: "Setup invalidating — contradictory evidence rising",
-        });
-        continue;
-      }
-      // Contract-resolution evidence. A candidate that repeatedly fails the
-      // chronological simulator cannot be promoted by frequency alone.
+      // ── Safety is assessed SEPARATELY from direction ──────────────────
+      // Nothing below deletes a candidate. A blocked candidate stays in the
+      // ranking, labelled BLOCKED with its reasons, so a genuine opportunity
+      // is never silently lost and a weak one is never silently promoted.
       const sim = simulatorAdjustment(intel.symbol, c.id, c.theoretical);
-      if (sim.perf.n >= 60 && sim.perf.winRate < c.theoretical - 0.04) {
+      const recentPerf = apexSimulator.recentPerformance(intel.symbol, c.id, c.theoretical);
+      const clearance = assessClearance({
+        intel,
+        contract: c,
+        recent: recentPerf,
+        lifetime: sim.perf,
+        maxDanger: opts.maxDanger,
+        maxLosingThreat: 82,
+      });
+      const entryRec = entryLab.recommend(intel.symbol, c.id, c.theoretical);
+      const evidence = classifyEvidence({
+        lifetime: sim.perf,
+        recent: recentPerf,
+        theoretical: c.theoretical,
+        clearance,
+        entry: entryRec,
+      });
+      if (clearance.state === "BLOCKED") {
         rejected.push({
           symbol: intel.symbol,
           contract: c.label,
-          reason: `Simulator evidence poor — ${(sim.perf.winRate * 100).toFixed(1)}% over N=${sim.perf.n} contract resolutions vs ${(c.theoretical * 100).toFixed(0)}% baseline`,
+          reason: clearance.blockers.map((b) => b.text).join(" · "),
         });
-        continue;
+      } else if (c.compositeEdge <= 0) {
+        rejected.push({
+          symbol: intel.symbol,
+          contract: c.label,
+          reason: `No composite edge (${c.compositeEdge.toFixed(1)}) — retained as an exploratory candidate only`,
+        });
       }
       const agreement = engineAgreement(c);
-      if (agreement === "STRONG CONFLICT") {
+      if (false) {
         rejected.push({
           symbol: intel.symbol,
           contract: c.label,
