@@ -514,7 +514,13 @@ function BestOpportunity({
         <Figure
           label="Evidence status"
           value={`${item.evidence.status} · ${item.evidence.confidence}/100`}
-          tone={item.evidence.status === "STRONG" ? "bull" : item.evidence.status === "CONTRADICTED" ? "bear" : undefined}
+          tone={
+            item.evidence.status === "VALIDATED"
+              ? "bull"
+              : item.evidence.status === "UNDERPERFORMING" || item.evidence.status === "BLOCKED"
+                ? "bear"
+                : undefined
+          }
         />
         <Figure
           label="Recent window (this market)"
