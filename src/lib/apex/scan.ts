@@ -115,7 +115,25 @@ export function rankOpportunities(
         agreement === "SUPPORT" ? 3 : agreement === "CONFLICT" ? -8 : 0;
       // Entry-condition discovery: which way of ENTERING has actually improved
       // contract-resolved expectancy on this market/contract?
-      const entry = entryLab.recommend(intel.symbol, c.id, c.theoretical);
+      const entry = entryRec;
+      // Multi-dimensional, confidence-adjusted adjustments. Authority scales
+      // with evidence maturity, so a 3-trade 100% record cannot outrank a
+      // mature one — and a new candidate is not deleted for being new.
+      const clearancePenalty =
+        clearance.state === "BLOCKED"
+          ? -45
+          : clearance.state === "UNSTABLE"
+            ? -12
+            : clearance.state === "CAUTION"
+              ? -5
+              : clearance.state === "INSUFFICIENT EVIDENCE"
+                ? -8
+                : 2;
+      const confidenceAdjustment = Math.round(((evidence.confidence - 50) / 50) * 4 * 10) / 10;
+      const recentDelta =
+        recentPerf.n >= 10
+          ? Math.max(-8, Math.min(6, (recentPerf.winRate - c.theoretical) * 60 * evidence.authority))
+          : 0;
       const factors = [
         {
           label: "Statistical opportunity",
