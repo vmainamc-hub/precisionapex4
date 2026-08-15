@@ -273,6 +273,17 @@ export interface RankedOpportunity {
   factors: RankFactor[];
   /** Conditions that would invalidate this ranking if they occur. */
   invalidation: string[];
+  /** Rolling-window record for THIS market/contract. Never a global figure. */
+  recent: import("./simulator").SimPerformance | null;
+  /** Danger clearance — safety is decided separately from direction. */
+  clearance: import("./clearance").ClearanceReport;
+  /** Confidence-adjusted classification of the evidence behind this candidate. */
+  evidence: import("./evidence-status").EvidenceAssessment;
+  /**
+   * True when clearance blocks the candidate. It stays in the ranking so a real
+   * opportunity is never silently deleted — it is surfaced as BLOCKED instead.
+   */
+  blocked: boolean;
 }
 
 /** One transparent, signed contribution to a market's ranking score. */
