@@ -96,14 +96,6 @@ export function rankOpportunities(
         });
       }
       const agreement = engineAgreement(c);
-      if (false) {
-        rejected.push({
-          symbol: intel.symbol,
-          contract: c.label,
-          reason: "Engine agreement: STRONG CONFLICT — engines disagree on the setup",
-        });
-        continue;
-      }
 
       const preferred = PRIMARY_CONTRACTS.includes(c.id);
       // Historical analogue from this app's own observed memory.
