@@ -464,6 +464,11 @@ export class EntryLab {
     return this.config;
   }
 
+  /** The catalogue of discoverable entry formulas under test. */
+  rules(): EntryRule[] {
+    return ENTRY_RULES;
+  }
+
   setConfig(patch: Partial<EntryLabConfig>) {
     this.config = { ...this.config, ...patch };
     this.emit();
