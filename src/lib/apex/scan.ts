@@ -4,7 +4,9 @@
 // strongest opportunity right now?
 import { lookupAnalogue, fingerprint } from "./memory";
 import { entryLab } from "./entry-conditions";
-import { engineAgreement, simulatorAdjustment } from "./simulator";
+import { apexSimulator, engineAgreement, simulatorAdjustment } from "./simulator";
+import { assessClearance } from "./clearance";
+import { classifyEvidence } from "./evidence-status";
 import type { MarketIntel, RankedOpportunity, ScanResult } from "./types";
 import { PRIMARY_CONTRACTS } from "./types";
 
