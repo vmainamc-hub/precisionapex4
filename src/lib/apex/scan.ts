@@ -181,6 +181,23 @@ export function rankOpportunities(
           points: agreementBonus,
           detail: agreement,
         },
+        {
+          label: "Recent window (this market)",
+          points: recentDelta,
+          detail: recentPerf.n
+            ? `Last ${Math.round(apexSimulator.getConfig().recentWindowMs / 60000)} min on ${intel.name}: ${recentPerf.n} qualifying entries, ${recentPerf.wins} wins, ${recentPerf.losses} losses, ${(recentPerf.winRate * 100).toFixed(1)}% win rate (authority ×${evidence.authority.toFixed(2)}).`
+            : `No qualifying entries in the last ${Math.round(apexSimulator.getConfig().recentWindowMs / 60000)} minutes on this market — no recent influence.`,
+        },
+        {
+          label: "Danger clearance",
+          points: clearancePenalty,
+          detail: clearance.summary,
+        },
+        {
+          label: "Evidence confidence",
+          points: confidenceAdjustment,
+          detail: `${evidence.status} · confidence ${evidence.confidence}/100 · uncertainty ${evidence.uncertainty}/100. ${evidence.note}`,
+        },
       ];
 
       const invalidation = [
