@@ -901,6 +901,13 @@ class ApexSimulator {
         reason: candidate.supports[0]?.label ?? "composite opportunity threshold met",
         simBefore: { n: perfBefore.n, winRate: perfBefore.winRate },
         simRecentBefore: { n: recentBefore.n, winRate: recentBefore.winRate },
+        // Engine attribution: every engine that supported (or opposed) this
+        // exact entry is recorded so its effectiveness can later be measured
+        // against the contract-resolved outcome.
+        engineVotes: [
+          ...candidate.supports.map((e) => ({ engine: e.engine, weight: Math.abs(e.weight) })),
+          ...candidate.conflicts.map((e) => ({ engine: e.engine, weight: -Math.abs(e.weight) })),
+        ],
       },
     };
     this.open.set(key, trade);
