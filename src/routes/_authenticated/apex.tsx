@@ -500,9 +500,52 @@ function BestOpportunity({
           tone={c.threat && c.threat.groupThreat > 55 ? "bear" : undefined}
         />
         <Figure label="Engine agreement" value={item.agreement} tone={item.agreement === "SUPPORT" ? "bull" : undefined} />
+        <Figure
+          label="Danger clearance"
+          value={`${item.clearance.state} · risk ${item.clearance.risk.toFixed(0)}`}
+          tone={
+            item.clearance.state === "CLEAR"
+              ? "bull"
+              : item.clearance.state === "BLOCKED" || item.clearance.state === "UNSTABLE"
+                ? "bear"
+                : undefined
+          }
+        />
+        <Figure
+          label="Evidence status"
+          value={`${item.evidence.status} · ${item.evidence.confidence}/100`}
+          tone={item.evidence.status === "STRONG" ? "bull" : item.evidence.status === "CONTRADICTED" ? "bear" : undefined}
+        />
+        <Figure
+          label="Recent window (this market)"
+          value={item.recent && item.recent.n ? `${(item.recent.winRate * 100).toFixed(1)}% · N=${item.recent.n}` : "NO RECENT SAMPLE"}
+          tone={
+            item.recent && item.recent.n
+              ? item.recent.winRate >= c.theoretical
+                ? "bull"
+                : "bear"
+              : undefined
+          }
+        />
       </div>
 
       <p className="mt-3 text-[11px] text-muted-foreground">{item.simNote}</p>
+      <p className="mt-1 text-[11px] text-muted-foreground">{item.clearance.summary}</p>
+      <p className="mt-1 text-[11px] text-muted-foreground">{item.evidence.note}</p>
+      {item.blocked ? (
+        <div className="mt-3 rounded-lg border border-bear/40 bg-bear/5 p-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-bear">
+            Blocked — shown, not deleted
+          </p>
+          <ul className="mt-1 space-y-1">
+            {item.clearance.blockers.map((b) => (
+              <li key={b.text} className="text-[11px] text-muted-foreground">
+                • {b.text}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       <div className="mt-6 rounded-lg border border-border/60 bg-background/40 p-4">
         <SectionTitle hint="every point in the ranking score, attributed">
