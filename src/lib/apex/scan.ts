@@ -261,7 +261,10 @@ export function scanNow(
   const online = intels.filter((i) => i.dataState === "OK");
   const { ranked, rejected } = rankOpportunities(intels, opts);
   const gd = globalDanger(intels);
-  const top = ranked.slice(0, 3);
+  // Multiple simultaneous opportunities are allowed — the operator is not
+  // restricted to a single market. Blocked candidates are excluded from the
+  // surfaced set but remain in `ranked` with their reasons intact.
+  const top = ranked.filter((r) => !r.blocked).slice(0, 5);
 
   let verdict: ScanResult["verdict"];
   let message: string;
@@ -270,13 +273,13 @@ export function scanNow(
     message = "DATA UNAVAILABLE — no market is currently streaming enough ticks to analyse.";
   } else if (!top.length) {
     verdict = "NONE";
-    message = "NO HIGH-QUALITY OPPORTUNITY CURRENTLY DETECTED. Every contract failed danger, edge or freshness checks.";
+    message = `NO CLEARED OPPORTUNITY. ${ranked.filter((r) => r.blocked).length} candidate(s) exist but are blocked by danger clearance.`;
   } else if (top[0].score >= opts.opportunityThreshold) {
     verdict = "OPPORTUNITY";
-    message = `Current evidence favours ${top[0].contract.label} on ${top[0].name} relative to the alternatives.`;
+    message = `${top[0].contract.label} on ${top[0].name} — clearance ${top[0].clearance.state}, evidence ${top[0].evidence.status}. Entry: ${top[0].entry?.best?.label ?? "immediate (no validated condition yet)"}.`;
   } else {
     verdict = "MODERATE";
-    message = `Best available opportunity — but quality is only moderate (${top[0].score.toFixed(0)}/100).`;
+    message = `Best available candidate ${top[0].contract.label} on ${top[0].name} is only moderate (${top[0].score.toFixed(0)}/100, evidence ${top[0].evidence.status}, clearance ${top[0].clearance.state}).`;
   }
 
   return {
